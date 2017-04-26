@@ -1,0 +1,13 @@
+<atlassian-plugin name="My Repository Hook Example" key="example.plugin.myhook" plugins-version="2">
+    <plugin-info>
+        <description>Repository hook to disable branch deletion</description>
+        <vendor name="My Company" url="http://www.mycompany.com"/>
+        <version>1.0</version>
+    </plugin-info>
+
+    <repository-hook key="myLogHook" name="log all commit" class="com.mycompany.example.plugin.myhook.MyRepositoryHook">
+        <description>log of all commits in this repository.</description>
+        <icon>icons/fox.png</icon>
+    </repository-hook>
+
+</atlassian-plugin>
