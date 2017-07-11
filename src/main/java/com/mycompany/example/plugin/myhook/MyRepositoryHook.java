@@ -35,23 +35,41 @@ public class MyRepositoryHook implements AsyncPostReceiveRepositoryHook {
 
     private static  Logger logger = LoggerFactory.getLogger(MyRepositoryHook.class);
     private static final int MAX_PAGE_REQUEST = 100;
-    private static final String URL = "http://platform.cbayel.com:8080/commit";
+    private static final String URL = "http://weekly.cbayel.com/commit";
     @Override
     public void postReceive(@Nonnull RepositoryHookContext repositoryHookContext, @Nonnull Collection<RefChange> collection) {
         try {
             CommitService commitService = ComponentLocator.getComponent(CommitService.class);
-            List<Commit> commitList = new ArrayList<>();
+            List<CommitVO> commitList = new ArrayList<>();
             logger.error("start get commit info");
             collection.stream().forEach(ref->{
                 Page<Commit> page = getChangesetPage(repositoryHookContext.getRepository(),ref,commitService);
                 logger.error("form={},to={} ",ref.getFromHash(),ref.getToHash());
                 logger.error("page size:{}",page.getSize());
                 page.getValues().forEach(commit -> {
-                    commitList.add(commit);
+                    CommitVO vo = new CommitVO();
+                    Author author = new Author();
+                    author.setName(commit.getAuthor().getName());
+                    author.setEmailAddress(commit.getAuthor().getEmailAddress());
+                    vo.setAuthor(author);
+                    vo.setId(commit.getId());
+                    vo.setMessage(commit.getMessage());
+                    vo.setAuthorTimestamp(commit.getAuthorTimestamp());
+                    RepositoryVO repositoryVO = new RepositoryVO();
+                    repositoryVO.setName(commit.getRepository().getName());
+                    Project project =  new Project();
+                    project.setName(commit.getRepository().getProject().getName());
+                    project.setDescription(commit.getRepository().getProject().getDescription());
+                    project.setId(commit.getRepository().getProject().getId());
+                    project.setKey(commit.getRepository().getProject().getKey());
+                    repositoryVO.setProject(project);
+                    vo.setRepository(repositoryVO);
+                    commitList.add(vo);
                     logger.error("commit",commit.getMessage());
                 });
 
             });
+
             sendSearchEngine(new ObjectMapper().writeValueAsString(commitList));
         } catch (Exception e) {
             e.printStackTrace();
